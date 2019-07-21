@@ -3,15 +3,21 @@ const Router = require('koa-router');
 const serve = require('koa-static');
 const path = require('path');
 const fs = require('fs');
+const { createBundleRenderer } = require('vue-server-renderer');
 const backendApp = new Koa();
 const frontendApp = new Koa();
 const backendRouter = new Router();
 const frontendRouter = new Router();
 
 // entry-server打包后输出的文件名是server.bundle.js
-const bundle = fs.readFileSync(path.resolve(__dirname, '../dist/server.bundle.js'), 'utf-8');
-const renderer = require('vue-server-renderer').createBundleRenderer(bundle, {
-    template: fs.readFileSync(path.resolve(__dirname, '../dist/index.ssr.html'), 'utf-8')
+const serverBundle = require(path.resolve(__dirname, '../dist/vue-ssr-server-bundle.json'));
+const clientManifest = require(path.resolve(__dirname, '../dist/vue-ssr-client-manifest.json'));
+const template = fs.readFileSync(path.resolve(__dirname, '../dist/index.ssr.html'), 'utf-8');
+
+const renderer = createBundleRenderer(serverBundle, {
+    runInNewContext: false,
+    template: template,
+    clientManifest: clientManifest
 });
 
 backendRouter.get('/index', async(ctx, next) => {
