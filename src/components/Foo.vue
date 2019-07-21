@@ -1,6 +1,7 @@
 <template>
   <div class="foo">
     <h1 @click="onHandleClick">Foo Component</h1>
+    <p>Component</p>
   </div>
 </template>
 

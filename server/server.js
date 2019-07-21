@@ -20,28 +20,18 @@ const renderer = createBundleRenderer(serverBundle, {
     clientManifest: clientManifest
 });
 
-backendRouter.get('/index', async(ctx, next) => {
-    try {
-        let html = await new Promise((resolve, reject) => {
-            // 这里直接使用 renderToString 的 Promise 模式，返回的 html 字符串没有样式和 __INITIAL_STATE__，原因暂时还没有查到
-            // 所以，只能暂时先自己封装一个 Promise，用 renderToString 的 callback 模式
-            renderer.renderToString((err, html) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(html);
-                }
-            });
-        });
+backendRouter.get('*', (ctx, next) => {
+    console.log('ctx', ctx);
+    console.log('url', ctx.url);
 
-        ctx.type = 'html';
-        ctx.status = 200;
-        ctx.body = html;
-    } catch (err) {
-        console.error(err);
-        ctx.status = 500;
-        ctx.body = '服务器内部错误';
-    }
+    let context = {
+        url: ctx.url
+    };
+
+    const ssrStream = renderer.renderToStream(context);
+    ctx.status = 200;
+    ctx.type = 'html';
+    ctx.body = ssrStream;
 });
 
 backendApp.use(serve(path.resolve(__dirname, '../dist')));
